@@ -91,6 +91,20 @@ function addViewer() {
     }
 }
 
+const max_progress_key = "max_progress"
+const cur_progress_key = "cur_progress"
+
+function setGlobalProgress(max, val) {
+    if (max == 0 && val == 0) {
+        localStorage.removeItem(max_progress_key)
+        localStorage.removeItem(cur_progress_key)
+    } else {
+        localStorage.setItem(max_progress_key, max);
+        localStorage.setItem(cur_progress_key, val);
+    }
+    setProgress(max, val);
+}
+
 function setProgress(max, val) {
     let pb = document.getElementById("progressBar")
     if (pb) {
@@ -133,4 +147,9 @@ window.addEventListener('DOMContentLoaded', e => {
     addProgress();
     addTestBtn();
     addViewer();
+    let m = localStorage.getItem(max_progress_key)
+    let c = localStorage.getItem(cur_progress_key)
+    if (m && c) {
+        setProgress(m, c)
+    }
 })

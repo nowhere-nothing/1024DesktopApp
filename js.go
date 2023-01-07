@@ -9,20 +9,23 @@ import (
 
 //go:embed js/*
 var jsDir embed.FS
-var initFiles = []string{
-	"viewer.min.css",
-	"viewer.min.js",
-	"init.js",
-}
+
+//go:embed init.tmpl
+var tmpl string
+var jsTmpl = template.Must(template.New("").Parse(tmpl))
 
 func combineJs() string {
 	data := make(map[string]string)
-	for _, v := range initFiles {
-		b, err := jsDir.ReadFile(path.Join("js", v))
+	entries, err := jsDir.ReadDir("js")
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range entries {
+		b, err := jsDir.ReadFile(path.Join("js", v.Name()))
 		if err != nil {
 			panic(err)
 		}
-		data[v] = string(b)
+		data[v.Name()] = string(b)
 	}
 	// todo: template add func map
 
@@ -32,7 +35,3 @@ func combineJs() string {
 	}
 	return b.String()
 }
-
-//go:embed init.tmpl
-var tmpl string
-var jsTmpl = template.Must(template.New("").Parse(tmpl))

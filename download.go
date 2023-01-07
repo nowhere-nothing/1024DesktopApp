@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -107,20 +108,28 @@ func DownloadFunc(dir string) (func(origin string, images []string), error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return func(origin string, images []string) {
-		defer log.Close()
+		app.Add(1)
 		wg := sync.WaitGroup{}
+		start := time.Now()
+		defer func() {
+			log.Printf("download use time [%s]", time.Since(start).String())
+			log.Close()
+			app.Done()
+		}()
 		log.Printf("start download from [%s]", origin)
 		log.Printf("total images [%d]", len(images))
-		start := time.Now()
-		AddMax(uint32(len(images)))
+
+		app.AddMax(int32(len(images)))
+
 		for _, i := range images {
 			r := NewCli(dir).R()
 			img := i
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				defer AddVal(1)
+				defer app.AddCur(1)
 				log.Printf("start download image [%s]", img)
 				fn := FileName(img)
 				resp, err := r.SetHeaders(headers).SetOutput(fn).Get(img)
@@ -135,6 +144,35 @@ func DownloadFunc(dir string) (func(origin string, images []string), error) {
 			}()
 		}
 		wg.Wait()
-		log.Printf("download use time [%s]", time.Since(start).String())
 	}, nil
+}
+
+type DownloadState struct {
+	max      atomic.Int32
+	cur      atomic.Int32
+	onChange func(m, c int32)
+}
+
+func (d *DownloadState) Max() int32 {
+	return d.max.Load()
+}
+func (d *DownloadState) Cur() int32 {
+	return d.cur.Load()
+}
+
+func (d *DownloadState) AddMax(n int32) {
+	d.max.Add(n)
+	if d.onChange != nil {
+		d.onChange(d.Max(), d.Cur())
+	}
+}
+func (d *DownloadState) AddCur(n int32) {
+	d.cur.Add(n)
+	if d.onChange != nil {
+		d.onChange(d.Max(), d.Cur())
+	}
+}
+func (d *DownloadState) Reset() {
+	d.max.Store(0)
+	d.cur.Store(0)
 }
