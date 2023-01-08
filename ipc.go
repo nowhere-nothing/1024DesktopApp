@@ -11,6 +11,10 @@ var saveFolder string
 
 func downloadFunc(app *App) func(title, url string, images []string) {
 	return func(title, url string, images []string) {
+		if saveFolder == "" {
+			app.Alert("图片保存路径没有设置")
+			return
+		}
 		title = strings.TrimSpace(title)
 		fn, err := Downloader(path.Join(saveFolder, title))
 		if err != nil {
