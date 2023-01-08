@@ -70,27 +70,40 @@ function addProgress() {
     document.getElementsByTagName("body")[0].appendChild(pb);
 }
 
-const save_folder_key = "save_folder"
+const save_folder_key = "save_folder";
+
+function checkSaveFolder() {
+    let v = localStorage.getItem(save_folder_key);
+    if (v) {
+        setSaveFolder(v).catch(err => {
+            alert(`旧保存路径错误 ${err}`)
+        });
+    } else {
+        saveFolderHandle();
+    }
+}
+
+function saveFolderHandle() {
+    let v = prompt("输入保存路径");
+    if (v) {
+        setSaveFolder(v).then(() => {
+            localStorage.setItem(save_folder_key, v);
+        }).catch(err => {
+            alert(`保存路径错误 ${err}`);
+        })
+    }
+}
 
 function addSaveFolderBtn() {
     let tb = document.createElement("button");
     tb.innerHTML = "路径";
     tb.id = "saveFolderBtn";
-    tb.onclick = function () {
-        let v = prompt("输入保存路径")
-        if (v) {
-            setSaveFolder(v).then(() => {
-                localStorage.setItem(save_folder_key, v)
-            }).catch(err => {
-                alert(`保存路径错误 ${err}`)
-            })
-        }
-    }
+    tb.onclick = saveFolderHandle;
     document.getElementsByTagName("body")[0].appendChild(tb);
 }
 
 function addViewer() {
-    let node = document.getElementById('conttpc')
+    let node = document.getElementById('conttpc');
     if (node) {
         const gallery = new Viewer(node, {
             backdrop: 'static',
@@ -156,9 +169,10 @@ window.addEventListener('DOMContentLoaded', e => {
     addProgress();
     addSaveFolderBtn();
     addViewer();
-    let m = localStorage.getItem(max_progress_key)
-    let c = localStorage.getItem(cur_progress_key)
+    let m = localStorage.getItem(max_progress_key);
+    let c = localStorage.getItem(cur_progress_key);
     if (m && c) {
-        setProgress(m, c)
+        setProgress(m, c);
     }
+    checkSaveFolder();
 })
