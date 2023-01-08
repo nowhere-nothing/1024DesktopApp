@@ -1,1 +1,1 @@
-run('go build -ldflags="-H windowsgui"')
+run('go build -ldflags="-H windowsgui -w -s"')

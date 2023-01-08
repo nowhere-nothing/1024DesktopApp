@@ -70,12 +70,21 @@ function addProgress() {
     document.getElementsByTagName("body")[0].appendChild(pb);
 }
 
-function addTestBtn() {
+const save_folder_key = "save_folder"
+
+function addSaveFolderBtn() {
     let tb = document.createElement("button");
-    tb.innerHTML = "test";
-    tb.id = "testBtn";
+    tb.innerHTML = "路径";
+    tb.id = "saveFolderBtn";
     tb.onclick = function () {
-        testFunc();
+        let v = prompt("输入保存路径")
+        if (v) {
+            setSaveFolder(v).then(() => {
+                localStorage.setItem(save_folder_key, v)
+            }).catch(err => {
+                alert(`保存路径错误 ${err}`)
+            })
+        }
     }
     document.getElementsByTagName("body")[0].appendChild(tb);
 }
@@ -95,7 +104,7 @@ const max_progress_key = "max_progress"
 const cur_progress_key = "cur_progress"
 
 function setGlobalProgress(max, val) {
-    if (max == 0 && val == 0) {
+    if (max === 0 && val === 0) {
         localStorage.removeItem(max_progress_key)
         localStorage.removeItem(cur_progress_key)
     } else {
@@ -134,7 +143,7 @@ window.addEventListener('DOMContentLoaded', e => {
     width: 300px;
     }
     
-    #testBtn {
+    #saveFolderBtn {
     position: fixed;
     right: 50px;
     bottom: 0;
@@ -145,7 +154,7 @@ window.addEventListener('DOMContentLoaded', e => {
     resetImage();
     addDownloadBtn();
     addProgress();
-    addTestBtn();
+    addSaveFolderBtn();
     addViewer();
     let m = localStorage.getItem(max_progress_key)
     let c = localStorage.getItem(cur_progress_key)

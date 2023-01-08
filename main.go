@@ -3,12 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/jchv/go-webview2"
-	"path"
-	"strings"
 	"sync"
 )
-
-var saveFolder = `D:\temp`
 
 type App struct {
 	w webview2.WebView
@@ -63,22 +59,11 @@ func main() {
 	w.Navigate("https://t66y.com/index.php")
 
 	app = NewAPP(w)
-	app.Bind("download", download)
-	app.Bind("testFunc", func() {
-		app.RunJS(`console.log("Hello");`)
-		app.RunJS(`alert("Hello");`)
-	})
+	app.Bind("download", downloadFunc(app))
+	app.Bind("testFunc", testFunc(app))
+	app.Bind("setSaveFolder", setSaveFolder)
+	app.Bind("initSaveFolder", initSaveFolder)
 
 	app.Run()
 	app.Wait()
-}
-
-func download(title, url string, images []string) {
-	title = strings.TrimSpace(title)
-	fn, err := DownloadFunc(path.Join(saveFolder, title))
-	if err != nil {
-		app.Alert(fmt.Sprintf("%s", err))
-		return
-	}
-	go fn(url, images)
 }

@@ -75,7 +75,12 @@ func SaveFromUrl(url, dir, fn string) error {
 	return err
 }
 
+var InvalidPathName = errors.New("invalid path name")
+
 func CheckDirEmpty(dir string) (bool, error) {
+	if dir == "" {
+		return false, InvalidPathName
+	}
 	err := os.MkdirAll(dir, 0644)
 	if err != nil {
 		return false, err
@@ -97,7 +102,8 @@ func NewCli(dir string) *resty.Client {
 	return cli
 }
 
-func DownloadFunc(dir string) (func(origin string, images []string), error) {
+// todo:refactory to support other storage
+func Downloader(dir string) (func(origin string, images []string), error) {
 	if ok, err := CheckDirEmpty(dir); err != nil {
 		return nil, err
 	} else if !ok {
@@ -175,4 +181,21 @@ func (d *DownloadState) AddCur(n int32) {
 func (d *DownloadState) Reset() {
 	d.max.Store(0)
 	d.cur.Store(0)
+}
+
+type PicMeta struct {
+	OriginTitle string
+	OriginURL   string
+	SrcUrl      string
+	Data        []byte
+}
+
+func (p *PicMeta) Name() string {
+	return ""
+}
+
+type Collection struct {
+	OriginTitle string   `json:"originTitle"`
+	OriginURL   string   `json:"originURL"`
+	ImageURL    []string `json:"imageURL"`
 }

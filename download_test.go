@@ -62,7 +62,7 @@ func TestSaveFromUrl(t *testing.T) {
 }
 
 func TestDownloadFunc(t *testing.T) {
-	fn, err := DownloadFunc("./aaa")
+	fn, err := Downloader("./aaa")
 	if err != nil {
 		t.Fatal(err)
 	}
