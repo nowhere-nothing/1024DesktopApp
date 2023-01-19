@@ -10,14 +10,20 @@ type App struct {
 	w webview2.WebView
 	sync.WaitGroup
 	DownloadState
+	once *sync.Once
 }
 
 func NewAPP(w webview2.WebView) *App {
 	a := &App{
-		w: w,
+		w:    w,
+		once: &sync.Once{},
 	}
 	a.onChange = a.setProgress
 	return a
+}
+
+func (a *App) Once(f func()) {
+	a.once.Do(f)
 }
 
 func (a *App) RunJS(js string) {
@@ -62,7 +68,11 @@ func main() {
 	app.Bind("download", downloadFunc(app))
 	app.Bind("testFunc", testFunc(app))
 	app.Bind("setSaveFolder", setSaveFolder)
-	app.Bind("initSaveFolder", initSaveFolder)
+	app.Bind("pickFolder", pickFolder)
+
+	app.Once(func() {
+		app.RunJS("sendSaveFolder();")
+	})
 
 	app.Run()
 	app.Wait()

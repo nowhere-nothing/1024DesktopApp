@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sqweek/dialog"
 	"os"
 	"path"
 	"strings"
@@ -32,10 +33,6 @@ func testFunc(app *App) func() {
 	}
 }
 
-func initSaveFolder(p string) {
-	saveFolder = p
-}
-
 func setSaveFolder(p string) error {
 	err := os.MkdirAll(p, 0644)
 	if err != nil {
@@ -43,4 +40,11 @@ func setSaveFolder(p string) error {
 	}
 	saveFolder = p
 	return nil
+}
+
+func pickFolder(title, start string) (string, error) {
+	return dialog.Directory().
+		Title(title).
+		SetStartDir(start).
+		Browse()
 }

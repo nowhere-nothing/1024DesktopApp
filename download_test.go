@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"github.com/sqweek/dialog"
+	"testing"
+)
 
 var target = `https://26img.com/i/vexmctsj.jpg`
 var batchTarget = []string{
@@ -72,4 +75,15 @@ func TestDownloadFunc(t *testing.T) {
 func TestCombineJs(t *testing.T) {
 	str := combineJs()
 	t.Logf(str)
+}
+
+func TestDialog(t *testing.T) {
+	dirStr, err := dialog.Directory().
+		Title("Select").
+		SetStartDir("./").
+		Browse()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(dirStr)
 }

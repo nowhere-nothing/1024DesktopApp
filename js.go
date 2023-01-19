@@ -35,3 +35,5 @@ func combineJs() string {
 	}
 	return b.String()
 }
+
+// document.documentElement.outerHTML

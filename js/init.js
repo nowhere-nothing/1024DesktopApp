@@ -1,3 +1,8 @@
+/*
+async setSaveFolder(path: string)
+async pickFolder(title: string, startDir: string)
+ */
+
 function resetImage() {
     let out_images = document.getElementById('conttpc')
         ?.getElementsByTagName('img');
@@ -72,33 +77,29 @@ function addProgress() {
 
 const save_folder_key = "save_folder";
 
-function checkSaveFolder() {
-    let v = localStorage.getItem(save_folder_key);
-    if (v) {
-        setSaveFolder(v).catch(err => {
-            alert(`旧保存路径错误 ${err}`)
-        });
-    } else {
-        saveFolderHandle();
-    }
+function pickFolderHandler() {
+    pickFolder("pick save dir", "").then(dir => {
+        setSaveFolder(dir).then(() => {
+            localStorage.setItem(save_folder_key, dir);
+        }).catch(err => {
+            console.log(`set save folder ${err}`);
+        })
+    }).catch(err => {
+        console.log(`select save folder ${err}`);
+    });
 }
 
-function saveFolderHandle() {
-    let v = prompt("输入保存路径");
-    if (v) {
-        setSaveFolder(v).then(() => {
-            localStorage.setItem(save_folder_key, v);
-        }).catch(err => {
-            alert(`保存路径错误 ${err}`);
-        })
-    }
+function sendSaveFolder() {
+    setSaveFolder(localStorage.getItem(save_folder_key)).catch(err => {
+        alert(err);
+    })
 }
 
 function addSaveFolderBtn() {
     let tb = document.createElement("button");
     tb.innerHTML = "路径";
     tb.id = "saveFolderBtn";
-    tb.onclick = saveFolderHandle;
+    tb.onclick = pickFolderHandler;
     document.getElementsByTagName("body")[0].appendChild(tb);
 }
 
@@ -174,5 +175,4 @@ window.addEventListener('DOMContentLoaded', e => {
     if (m && c) {
         setProgress(m, c);
     }
-    checkSaveFolder();
 })
