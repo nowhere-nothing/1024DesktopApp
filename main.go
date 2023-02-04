@@ -51,6 +51,7 @@ func (a *App) Bind(name string, f any) {
 		panic(err)
 	}
 }
+
 func (a *App) Run() {
 	a.w.Run()
 }
@@ -58,6 +59,7 @@ func (a *App) Run() {
 var app *App
 
 func main() {
+	bom := NewBOM()
 	w := webview2.New(true)
 	defer w.Destroy()
 	w.SetSize(1000, 1200, webview2.HintNone)
@@ -65,13 +67,17 @@ func main() {
 	w.Navigate("https://t66y.com/index.php")
 
 	app = NewAPP(w)
+	app.Bind("emitEvent", bom.EmitEvent)
 	app.Bind("download", downloadFunc(app))
 	app.Bind("testFunc", testFunc(app))
 	app.Bind("setSaveFolder", setSaveFolder)
 	app.Bind("pickFolder", pickFolder)
 
-	app.Once(func() {
-		app.RunJS("sendSaveFolder();")
+	once := sync.Once{}
+	bom.AddEventListener(DOMContentLoaded, func(eventType EventType, event Event) {
+		once.Do(func() {
+			app.RunJS("sendSaveFolder();")
+		})
 	})
 
 	app.Run()

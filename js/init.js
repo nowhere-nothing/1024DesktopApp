@@ -90,6 +90,7 @@ function pickFolderHandler() {
 }
 
 function sendSaveFolder() {
+    console.log("send save folder invoke");
     setSaveFolder(localStorage.getItem(save_folder_key)).catch(err => {
         alert(err);
     })
@@ -141,6 +142,7 @@ function setProgress(max, val) {
 }
 
 window.addEventListener('DOMContentLoaded', e => {
+    emitEvent("DOMContentLoaded");
     const style = document.createElement("style");
     style.innerHTML = `
     #downloadBtn {
