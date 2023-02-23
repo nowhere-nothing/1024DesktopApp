@@ -13,6 +13,10 @@ function resetImage() {
     }
 }
 
+function setCrawlerPattern(e) {
+
+}
+
 /*
 document.baseURI
 'https://t66y.com/htm_data/2301/8/5476460.html'
@@ -90,9 +94,8 @@ function pickFolderHandler() {
 }
 
 function sendSaveFolder() {
-    console.log("send save folder invoke");
     setSaveFolder(localStorage.getItem(save_folder_key)).catch(err => {
-        alert(err);
+        //alert(err);
     })
 }
 
@@ -144,28 +147,7 @@ function setProgress(max, val) {
 window.addEventListener('DOMContentLoaded', e => {
     emitEvent("DOMContentLoaded");
     const style = document.createElement("style");
-    style.innerHTML = `
-    #downloadBtn {
-      position: fixed;
-      right: 0;
-      bottom: 0;
-      width: 50px;
-    }
-    
-    #progress {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 300px;
-    }
-    
-    #saveFolderBtn {
-    position: fixed;
-    right: 50px;
-    bottom: 0;
-    width: 50px;
-    }
-    `;
+    style.innerHTML = mainCss;
     document.head.append(style);
     resetImage();
     addDownloadBtn();
@@ -177,4 +159,5 @@ window.addEventListener('DOMContentLoaded', e => {
     if (m && c) {
         setProgress(m, c);
     }
-})
+    delayFuncs();
+});

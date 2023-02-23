@@ -73,7 +73,7 @@ func TestDownloadFunc(t *testing.T) {
 }
 
 func TestCombineJs(t *testing.T) {
-	str := combineJs()
+	str := injectInitJS()
 	t.Logf(str)
 }
 

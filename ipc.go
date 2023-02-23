@@ -17,6 +17,7 @@ func downloadFunc(app *App) func(title, url string, images []string) {
 			return
 		}
 		title = strings.TrimSpace(title)
+		// todo: trim special character
 		fn, err := Downloader(path.Join(saveFolder, title))
 		if err != nil {
 			app.Alert(fmt.Sprintf("%s", err))
@@ -72,6 +73,7 @@ func (b *BOM) AddEventListener(t EventType, f EventHandler) {
 }
 
 func (b *BOM) EmitEvent(t EventType) {
+	println("emit", t)
 	for _, f := range b.eventHandler[t] {
 		f(t, 0)
 	}
