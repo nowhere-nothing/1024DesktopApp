@@ -13,10 +13,6 @@ function resetImage() {
     }
 }
 
-function setCrawlerPattern(e) {
-
-}
-
 /*
 document.baseURI
 'https://t66y.com/htm_data/2301/8/5476460.html'
@@ -79,24 +75,10 @@ function addProgress() {
     document.getElementsByTagName("body")[0].appendChild(pb);
 }
 
-const save_folder_key = "save_folder";
-
 function pickFolderHandler() {
-    pickFolder("pick save dir", "").then(dir => {
-        setSaveFolder(dir).then(() => {
-            localStorage.setItem(save_folder_key, dir);
-        }).catch(err => {
-            console.log(`set save folder ${err}`);
-        })
-    }).catch(err => {
-        console.log(`select save folder ${err}`);
+    setSaveFolder().catch(e => {
+        console.log("open save folder", e);
     });
-}
-
-function sendSaveFolder() {
-    setSaveFolder(localStorage.getItem(save_folder_key)).catch(err => {
-        //alert(err);
-    })
 }
 
 function addSaveFolderBtn() {
@@ -121,17 +103,6 @@ function addViewer() {
 const max_progress_key = "max_progress"
 const cur_progress_key = "cur_progress"
 
-function setGlobalProgress(max, val) {
-    if (max === 0 && val === 0) {
-        localStorage.removeItem(max_progress_key)
-        localStorage.removeItem(cur_progress_key)
-    } else {
-        localStorage.setItem(max_progress_key, max);
-        localStorage.setItem(cur_progress_key, val);
-    }
-    setProgress(max, val);
-}
-
 function setProgress(max, val) {
     let pb = document.getElementById("progressBar")
     if (pb) {
@@ -141,6 +112,13 @@ function setProgress(max, val) {
     let tip = document.getElementById("progressBarTip")
     if (tip) {
         tip.innerText = `${val}/${max}`
+    }
+    if (max === 0 && val === 0) {
+        localStorage.removeItem(max_progress_key)
+        localStorage.removeItem(cur_progress_key)
+    } else {
+        localStorage.setItem(max_progress_key, max);
+        localStorage.setItem(cur_progress_key, val);
     }
 }
 
@@ -161,3 +139,11 @@ window.addEventListener('DOMContentLoaded', e => {
     }
     delayFuncs();
 });
+
+window.addEventListener("load", e => {
+    if ($ && $.fn && $.fn.jquery) {
+        console.log("have jquery");
+    } else {
+        injectDyn("jquery.min.js");
+    }
+})

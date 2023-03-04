@@ -1,8 +1,9 @@
-package main
+package downloader
 
 import (
 	"github.com/sqweek/dialog"
 	"testing"
+	"webview_demo"
 )
 
 var target = `https://26img.com/i/vexmctsj.jpg`
@@ -73,7 +74,7 @@ func TestDownloadFunc(t *testing.T) {
 }
 
 func TestCombineJs(t *testing.T) {
-	str := injectInitJS()
+	str := main.injectInitJS()
 	t.Logf(str)
 }
 
