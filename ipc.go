@@ -61,7 +61,11 @@ func (f *Fetcher) batchDownload(title, url string, images []string) {
 		if err := f.pool.Submit(func() {
 			f.progress.AddCur(1)
 
-			f.fetchAndSave(logger, &cont, target)
+			if !f.fetchAndSave(logger, &cont, target) {
+				if err := f.SaveFailed(&cont, target); err != nil {
+					logger.WithError(err).Errorln("save failed url")
+				}
+			}
 
 		}); err != nil {
 			logger.WithError(err).Errorln("add sub image download task")
@@ -74,14 +78,14 @@ func (f *Fetcher) batchDownload(title, url string, images []string) {
 	}
 }
 
-func (f *Fetcher) fetchAndSave(logger *logrus.Entry, pc *store.PostContent, url string) {
+func (f *Fetcher) fetchAndSave(logger *logrus.Entry, pc *store.PostContent, url string) bool {
 	start := time.Now()
 	f.Debugln("start download", url)
 
 	fd, err := f.fetchHandler.Fetch(url)
 	if err != nil {
 		logger.WithError(err).Errorln("fetch image")
-		return
+		return false
 	}
 
 	err = f.Save(pc, &store.PostImage{
@@ -92,13 +96,14 @@ func (f *Fetcher) fetchAndSave(logger *logrus.Entry, pc *store.PostContent, url 
 	})
 	if err != nil {
 		logger.WithError(err).Errorln("save image")
-		return
+		return false
 	}
 
 	f.Debugf("download %s size %s time %.2fs", url,
 		fmtutil.DataSize(uint64(len(fd.Data))),
 		time.Since(start).Seconds(),
 	)
+	return true
 }
 
 func testFunc(app *App) func() {
