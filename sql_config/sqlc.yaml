@@ -1,0 +1,36 @@
+#version: 2
+#sql:
+#  - schema: "schema.sql"
+#    queries: "query.sql"
+#    engine: "mysql"
+#    codegen:
+#      - out: "./model"
+#    gen:
+#      go:
+#        package: "model"
+#        out: "model"
+#        emit_db_tags: true
+#        emit_prepared_queries: true
+version: 1
+packages:
+  - name: "model"
+    path: "../model"
+    queries: "query.sql"
+    schema: "migration"
+    engine: "mysql"
+    emit_db_tags: true
+    emit_prepared_queries: true
+
+overrides:
+  - column: "img_item.data"
+    go_type:
+      type: "[]byte"
+#  - column: "img_item.hash"
+#    go_type:
+#      type: "[]byte"
+#  - column: "img_item_failed.hash"
+#    go_type:
+#      type: "[]byte"
+#  - column: "img_set_meta.hash"
+#    go_type:
+#      type: "[]byte"

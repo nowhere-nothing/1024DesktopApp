@@ -1,8 +1,3 @@
-/*
-async setSaveFolder(path: string)
-async pickFolder(title: string, startDir: string)
- */
-
 function resetImage() {
     let out_images = document.getElementById('conttpc')
         ?.getElementsByTagName('img');
@@ -13,21 +8,6 @@ function resetImage() {
     }
 }
 
-/*
-document.baseURI
-'https://t66y.com/htm_data/2301/8/5476460.html'
-title: <h4 class="f16">
-pic: <div class="tpc_content do_not_catch" id="conttpc">
-         <img data-link ess-data src>
- */
-
-/*
-document.baseURI
-'https://t66y.com/htm_mob/2301/8/5470991.html'
-title: <div class="f18">
-pic: <div class="tpc_cont" id="conttpc">
-        <img data-link ess-data src">
- */
 function getImages() {
     let out_images = document.getElementById('conttpc')
         ?.getElementsByTagName("img");
@@ -123,10 +103,6 @@ function setProgress(max, val) {
 }
 
 window.addEventListener('DOMContentLoaded', e => {
-    emitEvent("DOMContentLoaded");
-    const style = document.createElement("style");
-    style.innerHTML = mainCss;
-    document.head.append(style);
     resetImage();
     addDownloadBtn();
     addProgress();
@@ -137,13 +113,4 @@ window.addEventListener('DOMContentLoaded', e => {
     if (m && c) {
         setProgress(m, c);
     }
-    delayFuncs();
 });
-
-window.addEventListener("load", e => {
-    if ($ && $.fn && $.fn.jquery) {
-        console.log("have jquery");
-    } else {
-        injectDyn("jquery.min.js");
-    }
-})

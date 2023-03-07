@@ -29,7 +29,7 @@ var headers = map[string]string{
 }
 
 const contentType = "content-type"
-const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 
 type Downloader struct {
 	rawCli *http.Client
@@ -57,6 +57,10 @@ func NewDownloader(wg *sync.WaitGroup) *Downloader {
 var noDataError = errors.New("response no data")
 
 func (d *Downloader) Fetch(url string) (*FetchData, error) {
+	return d.restyFetch(url)
+}
+
+func (d *Downloader) restyFetch(url string) (*FetchData, error) {
 	d.wg.Add(1)
 	defer d.wg.Done()
 	rsp, err := d.cli.R().Get(url)
@@ -94,7 +98,7 @@ func (d *Downloader) RawFetch(url string) (*FetchData, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetch data status: %s", resp.Status)
+		return nil, fmt.Errorf("fetch data status: %s", http.StatusText(resp.StatusCode))
 	}
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
@@ -112,9 +116,14 @@ type FetchData struct {
 	Data        []byte
 	Url         string
 	ContentType string
+	name        string
 }
 
 func (fd *FetchData) Name() string {
+	if fd.name != "" {
+		return fd.name
+	}
+
 	fn, ext := fd.split(fd.Url)
 	if ext == "" {
 		if t, err := filetype.Match(fd.Data); err == nil {

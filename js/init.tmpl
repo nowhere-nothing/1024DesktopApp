@@ -1,0 +1,25 @@
+window.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement("style");
+    style.innerHTML = `{{loadFile  "viewer.min.css" }}`;
+    document.head.append(style);
+
+    const style2 = document.createElement("style");
+    style2.innerHTML = `{{loadFile "main.css" }}`;
+    document.head.append(style2);
+
+    emitEvent("DOMContentLoaded");
+
+    try {
+        if (!($ && $.fn && $.fn.jquery)) {
+            loadJQ();
+        }
+    } catch (e) {
+        loadJQ();
+    }
+});
+
+{{ loadFile "viewer.min.js" }}
+
+{{ index . "siteScript" }}
+
+{{ loadFile "init.js" }}

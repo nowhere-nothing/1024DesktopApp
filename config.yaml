@@ -1,0 +1,23 @@
+dsn: 'root:root@tcp(localhost:3306)/cl_db'
+log_path: stdout
+log_level: debug
+work_pool_size: 256
+progress_function: "setProgress(%d,%d);"
+template: "./js/init.tmpl"
+script_dir: "./js/assets"
+
+site_map:
+  - url: https://t66y.com/index.php
+    script_name: t66y.js
+  - url: https://www.4kup.net/
+    script_name: k4up.js
+  - url: http://ryuryu.tw
+    script_name: ryu.js
+  - url: https://www.ikanins.com/
+    script_name: ikan.js
+  - url: https://socialgirls.im/
+    script_name: sg.js
+
+view_port:
+  width: 1000
+  height: 1200

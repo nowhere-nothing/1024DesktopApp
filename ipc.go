@@ -1,141 +1,104 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gookit/goutil/fmtutil"
 	"github.com/panjf2000/ants/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/sqweek/dialog"
-	"path"
 	"strings"
-	"sync"
 	"time"
 	"webview_demo/config"
 	"webview_demo/downloader"
 	"webview_demo/store"
 )
 
-type Wrapper struct {
-	D      *downloader.Downloader
-	P      *downloader.Progress
-	C      *config.Config
-	DH     *store.DownloadHistory
-	S      store.Storage
-	Pool   *ants.Pool
-	Logger *logrus.Logger
+type Fetcher struct {
+	fetchHandler *downloader.Downloader
+	progress     *downloader.Progress
+	config       *config.Config
+	pool         *ants.Pool
+	store.Storage
+	*logrus.Logger
 }
 
-func DownloadFunc(app *App) func(title, url string, images []string) {
-	return func(title, url string, images []string) {
-		if app.C.SavePath == "" {
+func (f *Fetcher) Fetch(title, url string, images []string) {
+	title = strings.Trim(title, "!@#$%^&*()_+-=`~,.<>/?{}\\| ")
 
-		}
-		w := &Wrapper{
-			D:      app.D,
-			P:      app.P,
-			C:      app.C,
-			S:      app.S,
-			Pool:   app.Pool,
-			Logger: app.logger,
-			DH:     app.DH,
-		}
+	f.Debugf("start download %s from url %s", title, url)
 
-		title = strings.Trim(title, "!@#$%^&*()_+-=`~,.<>/?{}\\| ")
+	if err := f.pool.Submit(func() {
 
-		if err := app.Pool.Submit(func() {
-			batchDownload(title, url, images, w)
-		}); err != nil {
-			app.logger.WithError(err).WithFields(map[string]interface{}{
-				"title": title, "url": url,
-				"images": images,
-			}).Errorf("add images download task")
-		}
+		f.batchDownload(title, url, images)
+
+	}); err != nil {
+		f.WithError(err).WithFields(map[string]interface{}{
+			"title": title, "url": url,
+			"images": images,
+		}).Errorln("add download task")
 	}
 }
 
-func fetchAndSave(w *Wrapper, url, path string) error {
-	start := time.Now()
-	w.Logger.Println("start fetch", url)
-	fd, err := w.D.Fetch(url)
-	if err != nil {
-		return err
+func (f *Fetcher) batchDownload(title, url string, images []string) {
+	cont := store.PostContent{
+		Title:  title,
+		Url:    url,
+		Images: images,
 	}
 
-	w.Logger.Printf("fetch  done %s size %s time %.2fs",
-		url, fmtutil.DataSize(uint64(len(fd.Data))), time.Since(start).Seconds())
-
-	err = w.S.Save(path, fd.Name(), fd.Data)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type SyncList[T any] struct {
-	mu   sync.Mutex
-	list []T
-}
-
-func NewSyncList[T any]() *SyncList[T] {
-	return &SyncList[T]{
-		list: make([]T, 0),
-	}
-}
-
-func (sl *SyncList[T]) Add(v T) {
-	sl.mu.Lock()
-	defer sl.mu.Unlock()
-	sl.list = append(sl.list, v)
-}
-
-func (sl *SyncList[T]) List() []T {
-	return sl.list
-}
-
-func batchDownload(title, url string, images []string, w *Wrapper) {
-	w.DH.Save(title, url, images)
-
-	y, m, day := time.Now().Date()
-	prefix := path.Join(w.C.SavePath,
-		fmt.Sprintf("%d-%d-%d", y, m, day),
-		title,
-	)
-	if err := w.S.MkdirAll(prefix); err != nil {
-		w.Logger.WithError(err).Errorf("create directory [%s]", prefix)
+	if err := f.MkdirAll(&cont); err != nil {
+		f.WithError(err).Errorln("mkdir all")
 		return
 	}
 
-	wg := sync.WaitGroup{}
-	failed := NewSyncList[string]()
-	var added int32
-
-	for i, target := range images {
+	for i, t := range images {
 		idx := i
-		subTarget := target
+		target := t
 
-		logger := w.Logger.WithFields(map[string]interface{}{
-			"index": idx, "title": title, "url": url,
-			"subUrl": subTarget,
+		logger := f.WithFields(map[string]interface{}{
+			"index": idx, "title": title, "url": url, "subUrl": target,
 		})
 
-		if err := w.Pool.Submit(func() {
-			if err := fetchAndSave(w, subTarget, prefix); err != nil {
-				logger.WithError(err).Errorf("fetch or save")
-				failed.Add(subTarget)
-			}
-			wg.Done()
-			w.P.AddCur(1)
+		if err := f.pool.Submit(func() {
+			f.progress.AddCur(1)
+
+			f.fetchAndSave(logger, &cont, target)
+
 		}); err != nil {
-			logger.WithError(err).Errorf("add sub image download task")
-			failed.Add(subTarget)
+			logger.WithError(err).Errorln("add sub image download task")
+			if err = f.SaveFailed(&cont, target); err != nil {
+				logger.WithError(err).Errorln("save failed url")
+			}
 		} else {
-			wg.Add(1)
-			added++
+			f.progress.AddMax(1)
 		}
 	}
-	w.P.AddMax(added)
-	wg.Wait()
-	w.DH.Failed(title, url, failed.List())
+}
+
+func (f *Fetcher) fetchAndSave(logger *logrus.Entry, pc *store.PostContent, url string) {
+	start := time.Now()
+	f.Debugln("start download", url)
+
+	fd, err := f.fetchHandler.Fetch(url)
+	if err != nil {
+		logger.WithError(err).Errorln("fetch image")
+		return
+	}
+
+	err = f.Save(pc, &store.PostImage{
+		Name:        fd.Name(),
+		Data:        fd.Data,
+		ContentType: fd.ContentType,
+		Url:         url,
+	})
+	if err != nil {
+		logger.WithError(err).Errorln("save image")
+		return
+	}
+
+	f.Debugf("download %s size %s time %.2fs", url,
+		fmtutil.DataSize(uint64(len(fd.Data))),
+		time.Since(start).Seconds(),
+	)
 }
 
 func testFunc(app *App) func() {

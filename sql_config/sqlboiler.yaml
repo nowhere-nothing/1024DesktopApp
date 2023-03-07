@@ -1,0 +1,12 @@
+pkgname: model2
+output: model2
+wipe: true
+add-enum-type: true
+
+mysql:
+  dbname: cl_db
+  host: localhost
+  port: 3306
+  user: root
+  pass: root
+  sslmode: "false"
