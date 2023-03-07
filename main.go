@@ -4,7 +4,9 @@ import (
 	"flag"
 	"github.com/panjf2000/ants/v2"
 	"github.com/sirupsen/logrus"
+	"github.com/sqweek/dialog"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"webview_demo/config"
@@ -15,8 +17,15 @@ import (
 var configPath string
 var genConfig string
 
+const name = "picxus"
+
 func main() {
-	flag.StringVar(&configPath, "config", "./config.yaml", "/path/to/config.yaml")
+	d, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	cp := filepath.Join(d, "Documents", name, "config.yaml")
+	flag.StringVar(&configPath, "config", cp, "/path/to/config.yaml")
 	flag.StringVar(&genConfig, "init", "", "generate config file template")
 	flag.Parse()
 
@@ -33,7 +42,6 @@ func main() {
 	}
 
 	logger := logrus.New()
-	logger.SetReportCaller(true)
 
 	l, err := logrus.ParseLevel(c.LogLevel)
 	if err != nil {
@@ -41,6 +49,10 @@ func main() {
 		logger.SetLevel(logrus.DebugLevel)
 	} else {
 		logger.SetLevel(l)
+	}
+
+	if logger.IsLevelEnabled(logrus.DebugLevel) {
+		logger.SetReportCaller(true)
 	}
 
 	if c.LogPath != "stdout" {
@@ -57,6 +69,7 @@ func main() {
 		err = store.InitDB(c.Dsn)
 		if err != nil {
 			logger.WithError(err).Errorln("init database dsn:", c.Dsn)
+			dialog.Message("start up %v", err).Title("run error").Error()
 			os.Exit(1)
 		}
 		ds = store.NewDBStorage()
@@ -76,6 +89,7 @@ func main() {
 	)
 	if err != nil {
 		logger.WithError(err).Errorln("init work pool size:", c.WorkPoolSize)
+		dialog.Message("start up %v", err).Title("run error").Error()
 		os.Exit(1)
 	}
 	defer gPool.Release()
@@ -85,8 +99,12 @@ func main() {
 	err = app.Run(gPool, dl, ds)
 	if err != nil {
 		logger.WithError(err).Errorln("run main app")
+		dialog.Message("start up %v", err).Title("run error").Error()
 		os.Exit(1)
 	}
 	app.Close()
 	wg.Wait()
+	if gPool.Running() != 0 {
+		logger.Warningf("pool worker num %d running but progress exit", gPool.Running())
+	}
 }

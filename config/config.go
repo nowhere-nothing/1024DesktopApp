@@ -50,7 +50,7 @@ func GenerateTemplate(p string) error {
 		LogLevel:         "debug",
 		Template:         "./js/assets/init.tmpl",
 		ScriptDir:        "./js/assets",
-		ProgressFunction: "\"setProgress(%d,%d);\"",
+		ProgressFunction: "setProgress",
 		SiteMap: []*SiteItem{
 			{Url: "host_name1", ScriptName: `"init script file1"`},
 			{Url: "host_name2", ScriptName: `"init script file2"`},

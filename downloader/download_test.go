@@ -1,11 +1,5 @@
 package downloader
 
-import (
-	"github.com/sqweek/dialog"
-	"testing"
-	"webview_demo"
-)
-
 var target = `https://26img.com/i/vexmctsj.jpg`
 var batchTarget = []string{
 	"https://23img.com/i/2023/01/05/dn8iox.jpg",
@@ -44,47 +38,4 @@ var batchTarget = []string{
 	"https://23img.com/i/2023/01/05/do1lu4.jpg",
 	"https://23img.com/i/2023/01/05/doeepy.jpg",
 	"https://23img.com/i/2023/01/05/dnennh.jpg",
-}
-
-func TestDownload(t *testing.T) {
-	data, err := FetchData(target)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = SaveBinary(".", "a.jpg", data)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestSaveFromUrl(t *testing.T) {
-	const gzipPic = "https://23img.com/i/2023/01/05/dn8iox.jpg"
-	err := SaveFromUrl(gzipPic, ".", "a.jpg")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestDownloadFunc(t *testing.T) {
-	fn, err := Downloader("./aaa")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fn("https://t66y.com/htm_mob/2301/8/5475955.html", batchTarget)
-}
-
-func TestCombineJs(t *testing.T) {
-	str := main.injectInitJS()
-	t.Logf(str)
-}
-
-func TestDialog(t *testing.T) {
-	dirStr, err := dialog.Directory().
-		Title("Select").
-		SetStartDir("./").
-		Browse()
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(dirStr)
 }

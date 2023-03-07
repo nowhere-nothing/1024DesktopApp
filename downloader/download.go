@@ -40,7 +40,7 @@ type Downloader struct {
 func NewDownloader(wg *sync.WaitGroup) *Downloader {
 	client := resty.New()
 	//client.SetProxy()
-	//client.SetHeader("user-agent", ua)
+	client.SetHeader("user-agent", ua)
 	client.SetHeaders(headers)
 	client.SetCloseConnection(true)
 	client.SetTimeout(2 * time.Minute)

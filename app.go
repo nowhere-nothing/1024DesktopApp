@@ -8,6 +8,7 @@ import (
 	"github.com/ncruces/zenity"
 	"github.com/panjf2000/ants/v2"
 	"github.com/sirupsen/logrus"
+	"github.com/sqweek/dialog"
 	"os"
 	"reflect"
 	"strings"
@@ -64,6 +65,7 @@ func (a *App) Bind(name string, f any) {
 
 	if err := a.win.Bind(name, f); err != nil {
 		a.logger.WithError(err).Errorln("bind function", name)
+		dialog.Message("start up %v", err).Title("run error").Error()
 		os.Exit(1)
 	}
 }
@@ -99,14 +101,14 @@ func (a *App) Run(pool *ants.Pool, dl *downloader.Downloader, ds store.Storage) 
 			a.Progress.Reset()
 			x, y = 0, -1
 		}
-		a.RunJS(fmt.Sprintf(a.Config.ProgressFunction, x, y+1))
+		a.RunJS(fmt.Sprintf("%s(%d,%d);", a.Config.ProgressFunction, x, y+1))
 	})
 
 	urls := make([]string, 0, len(a.Config.SiteMap))
 	for _, v := range a.Config.SiteMap {
 		urls = append(urls, v.Url)
 	}
-	site, err := zenity.List("选择网址", urls, zenity.Title("Picux"))
+	site, err := zenity.List("选择网址", urls, zenity.Title(name))
 	if err != nil {
 		if errors.Is(zenity.ErrCanceled, err) {
 			os.Exit(0)
